@@ -1,4 +1,4 @@
-const keyboard = {
+const Keyboard = {
   elements: {
     main: null,
     keysContainer: null,
@@ -16,69 +16,171 @@ const keyboard = {
   },
 
   init() {
-    //main elements
+    let textarea1 = document.createElement("textarea");
+    textarea1.classList.add("keyboard-input");
+    document.body.append(textarea1);
+    // Create main elements
     this.elements.main = document.createElement("div");
     this.elements.keysContainer = document.createElement("div");
 
-    //setup main elements
-    this.elements.main.classList.add("keyboard", "1keyboard-hidden");
+    // Setup main elements
+    this.elements.main.classList.add("keyboard");
     this.elements.keysContainer.classList.add("keyboard-keys");
+    this.elements.keysContainer.appendChild(this._createKeys());
 
-    //add dom
+    this.elements.keys = this.elements.keysContainer.querySelectorAll(".keyboard-key");
+
+    // Add to DOM
     this.elements.main.appendChild(this.elements.keysContainer);
     document.body.appendChild(this.elements.main);
+
+    // Automatically use keyboard for elements with .use-keyboard-input
+    document.querySelectorAll(".keyboard-input").forEach(element => {
+      element.addEventListener("focus", () => {
+        this.open(element.value, currentValue => {
+          element.value = currentValue;
+        });
+      });
+    });
   },
 
-  _createkeys() {
+  _createKeys() {
     const fragment = document.createDocumentFragment();
-    const keylayout = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "backspace",
+    const keyLayout = [
+      "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "backspace",
       "q", "w", "e", "r", "t", "y", "u", "i", "o", "p",
       "caps", "a", "s", "d", "f", "g", "h", "j", "k", "l", "enter",
       "done", "z", "x", "c", "v", "b", "n", "m", ",", ".", "?",
       "space"
     ];
 
-    const createiconshtml = (icon_name) =>{
-      return "<i claas = materials-icons><i>${icon_name}</i>";
+    const keyLayoutU = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "backspace",
+      "й", "ц", "у", "к", "е", "н", "г", "ш", "щ", "з",
+      "caps", "ф", "ы", "в", "а", "п", "р", "о", "л", "д", "enter",
+      "done", "я", "ч", "с", "м", "и", "т", "ь", "б", "ю", ".",
+      "space"];
+
+    // Creates HTML for an icon
+    const createIconHTML = (icon_name) => {
+      return `<i class="material-icons">${icon_name}</i>`;
     };
 
-    keylayout.forEach(key => {
-      const keyelement = document.createElement("button");
-      const inserlinebreak = ["backspace", "p", "enter", "?"].indexOf(key) !== -1;
+    keyLayout.forEach(key => {
+      const keyElement = document.createElement("button");
+      const insertLineBreak = ["backspace", "p", "enter", "?"].indexOf(key) !== -1;
 
-      //add attributes/clasess
-      keyelement.setAttribute("type", "button");
-      keyelement.classList.add("keyboard-key");
-      
+      // Add attributes/classes
+      keyElement.setAttribute("type", "button");
+      keyElement.classList.add("keyboard-key");
 
-      switch(key){
+      switch (key) {
         case "backspace":
-          keyelement.classList.add("keyboard-key-wide");
-          keyelement.innerHTML = createiconshtml("backspace");
+          keyElement.classList.add("keyboard-key-wide");
+          keyElement.innerHTML = createIconHTML("backspace");
+
+          keyElement.addEventListener("click", () => {
+            this.properties.value = this.properties.value.substring(0, this.properties.value.length - 1);
+            this._triggerEvent("oninput");
+          });
+
+          break;
+
+        case "caps":
+          keyElement.classList.add("keyboard-key-wide", "keyboard-key-activatable");
+          keyElement.innerHTML = createIconHTML("keyboard_capslock");
+
+          keyElement.addEventListener("click", () => {
+            this._toggleCapsLock();
+            keyElement.classList.toggle("keyboard-key-active", this.properties.capsLock);
+          });
+
+          break;
+
+        case "enter":
+          keyElement.classList.add("keyboard-key-wide");
+          keyElement.innerHTML = createIconHTML("keyboard-return");
+
+          keyElement.addEventListener("click", () => {
+            this.properties.value += "\n";
+            this._triggerEvent("oninput");
+          });
+
+          break;
+
+        case "space":
+          keyElement.classList.add("keyboard-key-extra-wide");
+          keyElement.innerHTML = createIconHTML("space-bar");
+
+          keyElement.addEventListener("click", () => {
+            this.properties.value += " ";
+            this._triggerEvent("oninput");
+          });
+
+          break;
+
+        case "done":
+          keyElement.classList.add("keyboard-key-wide", "keyboard-key-dark");
+          keyElement.innerHTML = createIconHTML("check-circle");
+
+          keyElement.addEventListener("click", () => {
+            this.close();
+            this._triggerEvent("onclose");
+          });
+
+          break;
+
+        default:
+          keyElement.textContent = key.toLowerCase();
+
+          keyElement.addEventListener("click", () => {
+            this.properties.value += this.properties.capsLock ? key.toUpperCase() : key.toLowerCase();
+            this._triggerEvent("oninput");
+          });
 
           break;
       }
+
+      fragment.appendChild(keyElement);
+
+      if (insertLineBreak) {
+        fragment.appendChild(document.createElement("br"));
+      }
     });
 
+    return fragment;
   },
 
   _triggerEvent(handlerName) {
-    console.log("event triggered event name:" + handlerName);
+    if (typeof this.eventHandlers[handlerName] == "function") {
+      this.eventHandlers[handlerName](this.properties.value);
+    }
   },
+
   _toggleCapsLock() {
-    console.log("caps lock toggled");
+    this.properties.capsLock = !this.properties.capsLock;
+
+    for (const key of this.elements.keys) {
+      if (key.childElementCount === 0) {
+        key.textContent = this.properties.capsLock ? key.textContent.toUpperCase() : key.textContent.toLowerCase();
+      }
+    }
   },
 
-  open(initiaValue, oninput, onclose) {
-
+  /* open(initialValue, oninput, onclose) {
+    this.properties.value = initialValue || "";
+    this.eventHandlers.oninput = oninput;
+    this.eventHandlers.onclose = onclose;
+    this.elements.main.classList.remove("keyboard-hidden");
   },
 
-  clolse() {
-
-  }
-
+  close() {
+    this.properties.value = "";
+    this.eventHandlers.oninput = oninput;
+    this.eventHandlers.onclose = onclose;
+    this.elements.main.classList.add("keyboard-hidden");
+  } */
 };
 
 window.addEventListener("DOMContentLoaded", function () {
-  keyboard.init();
+  Keyboard.init();
 });
