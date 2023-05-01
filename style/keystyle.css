@@ -52,7 +52,7 @@
 }
 
 .keyboard-key:active {
-  background: rgba(38, 66, 33, 0.2);
+  background: rgba(228, 23, 8, 0.534);
 }
 
 .keyboard-key-wide {
@@ -82,4 +82,12 @@
 
 .keyboard-key-dark{
   background: rgba(0, 0, 0, 0.25);
+}
+
+.description{
+  font-size: x-large;
+  color: rgba(72, 255, 0, 0.952);
+  font-weight: 900;
+  text-align: center;
+  background-color: black;
 }

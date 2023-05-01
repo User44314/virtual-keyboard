@@ -16,6 +16,8 @@ const Keyboard = {
   },
 
   init() {
+
+
     let textarea1 = document.createElement("textarea");
     textarea1.classList.add("keyboard-input");
     document.body.append(textarea1);
@@ -28,7 +30,18 @@ const Keyboard = {
     this.elements.keysContainer.classList.add("keyboard-keys");
     this.elements.keysContainer.appendChild(this._createKeys());
 
+
+
+    //text windows and language check
+    let text1 = document.createElement("p");
+    let t = document.createTextNode("Клавиатура создана в операционной системе Windows. Для переключения языка комбинация: левыe alt + shift (shift + alt)");
+    text1.classList.add("description");
+    text1.appendChild(t);
+    document.body.append(text1);
+
+
     this.elements.keys = this.elements.keysContainer.querySelectorAll(".keyboard-key");
+
 
     // Add to DOM
     this.elements.main.appendChild(this.elements.keysContainer);
@@ -39,33 +52,72 @@ const Keyboard = {
       element.addEventListener("focus", () => {
         this.open(element.value, currentValue => {
           element.value = currentValue;
-        });
+        })
       });
     });
+
+
   },
 
   _createKeys() {
     const fragment = document.createDocumentFragment();
-    const keyLayout = [
-      "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "backspace",
-      "q", "w", "e", "r", "t", "y", "u", "i", "o", "p",
-      "caps", "a", "s", "d", "f", "g", "h", "j", "k", "l", "enter",
-      "done", "z", "x", "c", "v", "b", "n", "m", ",", ".", "?",
-      "space"
-    ];
 
-    const keyLayoutU = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "backspace",
-      "й", "ц", "у", "к", "е", "н", "г", "ш", "щ", "з",
-      "caps", "ф", "ы", "в", "а", "п", "р", "о", "л", "д", "enter",
-      "done", "я", "ч", "с", "м", "и", "т", "ь", "б", "ю", ".",
-      "space"];
+
+
+    const keyLayout = {
+      key1: [
+        "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "backspace",
+        "q", "w", "e", "r", "t", "y", "u", "i", "o", "p",
+        "caps", "a", "s", "d", "f", "g", "h", "j", "k", "l", "enter",
+        "done", "ShiftL", "z", "x", "c", "v", "b", "n", "m", ",", ".", "?", "ShiftR",
+        "ControlL", "AltL", "space", "AltR", "ControlR", "arrowup", "adown", "aleft", "aright"
+      ],
+
+      key2: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "backspace",
+        "й", "ц", "у", "к", "е", "н", "г", "ш", "щ", "з",
+        "caps", "ф", "і", "в", "а", "п", "р", "о", "л", "д", "enter",
+        "done", "ShiftLeft", "я", "ч", "с", "м", "и", "т", "ь", "б", "ю", ".", "shiftRight",
+        "ControlL", "AltL", "space", "AltR", "ControlR", "arrowup", "adown", "aleft", "aright"]
+
+    }
+
+    //switch keyboard language
+    /* const keyb = document.getElementById('keyboard'); */
+
+    let currentLayout = keyLayout.key1;
+
+    switchLayout(currentLayout);
+
+    function switchLayout(layout) {
+      /*  keyb.innerHTML = ''; */
+      currentLayout = layout;
+    }
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Shift' && event.altKey) {
+        switchLayout(keyLayout.key1);
+      } else {
+        switchLayout(keyLayout.key2)
+      }
+    });
+
+    /*     function gfg_Run() {
+          window.addEventListener("keydown", function(e) {
+              if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1){
+                  e.preventDefault();
+              }
+          }, false);
+            
+          keyElement.innerHTML =
+              "Scrolling from arrow keys is disabled.";
+      }     */
 
     // Creates HTML for an icon
     const createIconHTML = (icon_name) => {
       return `<i class="material-icons">${icon_name}</i>`;
     };
 
-    keyLayout.forEach(key => {
+    currentLayout.forEach(key => {
       const keyElement = document.createElement("button");
       const insertLineBreak = ["backspace", "p", "enter", "?"].indexOf(key) !== -1;
 
@@ -92,6 +144,50 @@ const Keyboard = {
           keyElement.addEventListener("click", () => {
             this._toggleCapsLock();
             keyElement.classList.toggle("keyboard-key-active", this.properties.capsLock);
+          });
+
+          break;
+
+       /*  case "arrowup":
+          keyElement.classList.add("keyboard-key");
+          keyElement.innerHTML = createIconHTML("ArrowUp");
+
+          keyElement.addEventListener("click", function () {
+            this.properties.value += "\n";
+            this._triggerEvent("oninput");
+          });
+
+          break; */
+
+        /* case "adown":
+          keyElement.classList.add("keyboard-key");
+          keyElement.innerHTML = createIconHTML("ArrowDown");
+
+          keyElement.addEventListener("click", function () {
+            this.properties.value += "\n";
+            this._triggerEvent("oninput");
+          });
+
+          break;
+
+        case "aleft":
+          keyElement.classList.add("keyboard-key");
+          keyElement.innerHTML = createIconHTML("arrowdown");
+
+          keyElement.addEventListener("click", function () {
+            this.properties.value += "\n";
+            this._triggerEvent("oninput");
+          });
+
+          break; */
+
+        case "aright":
+          keyElement.classList.add("keyboard-key-wide", "keyboard-key-activatable");
+          keyElement.innerHTML = createIconHTML("arrowdown");
+
+          keyElement.addEventListener("click", function () {
+            this.properties.value += " ";
+            this._triggerEvent("oninput");
           });
 
           break;
@@ -140,6 +236,13 @@ const Keyboard = {
           break;
       }
 
+      document.addEventListener('keydown', function (event) {
+        if (event.code == 'ArrowUp') {
+          /*  alert('Undo!'); */
+          /* event.preventDefault(); */
+        }
+      });
+
       fragment.appendChild(keyElement);
 
       if (insertLineBreak) {
@@ -166,21 +269,24 @@ const Keyboard = {
     }
   },
 
-  /* open(initialValue, oninput, onclose) {
+
+
+  open(initialValue, oninput, onclose) {
     this.properties.value = initialValue || "";
     this.eventHandlers.oninput = oninput;
     this.eventHandlers.onclose = onclose;
     this.elements.main.classList.remove("keyboard-hidden");
   },
 
-  close() {
-    this.properties.value = "";
-    this.eventHandlers.oninput = oninput;
-    this.eventHandlers.onclose = onclose;
-    this.elements.main.classList.add("keyboard-hidden");
-  } */
+  /*  close() {
+     this.properties.value = "";
+     this.eventHandlers.oninput = oninput;
+     this.eventHandlers.onclose = onclose;
+     this.elements.main.classList.add("keyboard-hidden");
+   } */
 };
 
 window.addEventListener("DOMContentLoaded", function () {
   Keyboard.init();
+  Keyboard.gfg_Run();
 });
